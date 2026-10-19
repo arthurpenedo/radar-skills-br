@@ -1,0 +1,6 @@
+{
+  "descricao": "Exemplo: as habilidades que um portfólio já demonstra (nomes do catálogo em src/radar_skills/skills.py).",
+  "skills": ["Python", "SQL", "Git", "CI/CD", "APIs REST", "LLM / IA generativa", "RAG", "Agentes de IA", "MCP",
+             "Avaliação de LLM", "Prompt engineering", "Testes automatizados", "LGPD / segurança",
+             "RPA / Power Automate", "n8n / Make / Zapier", "Inglês", "Embeddings / banco vetorial"]
+}
