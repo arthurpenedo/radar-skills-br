@@ -56,6 +56,8 @@ Falta:     Power BI / BI (42%), JavaScript/TypeScript (25%), Spark / dbt / Airfl
 ```bash
 pip install -e ".[dev]"
 radar-skills coletar --saida vagas.json            # ~2 min, 12 buscas na Gupy
+radar-skills coletar --saida vagas.json --remotas  # soma remotas internacionais que aceitam Brasil/LATAM/mundo
+radar-skills exportar vagas.json --pasta powerbi   # vagas.csv + vaga_skill.csv (modelo estrela) para o Power BI
 radar-skills relatorio vagas.json                  # site/index.html + site/resumo.json
 radar-skills lacunas site/resumo.json exemplos/perfil.json --nivel "júnior/trainee"
 pytest -q                                          # 20 testes, sem internet
@@ -65,7 +67,7 @@ Para o seu perfil, copie `exemplos/perfil.json` e liste as habilidades que você
 
 ## Limites honestos
 
-- **Só Gupy.** LinkedIn, Indeed e sites próprios das empresas ficam de fora (exigem login ou proíbem coleta). A Gupy é forte em empresa grande e média brasileira; startup e vaga internacional aparecem menos.
+- **Gupy por padrão.** Com `--remotas` entram também as remotas internacionais (Remotive, RemoteOK, Himalayas, Jobicy, We Work Remotely, Working Nomads), só as que aceitam Brasil, LATAM ou mundo. Os leitores seguem a documentação pública das APIs e foram testados com respostas gravadas à mão (sem internet): o primeiro uso real pode pedir o ajuste de um campo. LinkedIn, Indeed e sites próprios das empresas ficam de fora (exigem login ou proíbem coleta). A Gupy é forte em empresa grande e média brasileira; startup e vaga internacional aparecem menos.
 - **Palavra-chave não é entendimento.** "Inglês" conta mesmo em "inglês não é necessário", e "APIs" conta em "API do Power BI". Os testes cobrem os falsos positivos mais comuns (Java x JavaScript, "rest" dentro de "restante"), mas os números são aproximados.
 - **Nível pelo título.** 35% das vagas não dizem o nível no título e ficam como "não informado".
 - **Amostra pequena no júnior:** 24 vagas. Diferenças de poucos pontos nesse grupo não querem dizer nada.
@@ -75,6 +77,7 @@ Para o seu perfil, copie `exemplos/perfil.json` e liste as habilidades que você
 
 ```
 src/radar_skills/
+  remotas.py     leitores das APIs remotas internacionais + filtro "aceita Brasil" (download injetável nos testes)
   coleta.py      busca paginada na Gupy, filtro por data, sem repetidas (busca injetável nos testes)
   skills.py      catálogo de 36 habilidades (regex) + nível pelo título
   analise.py     agrega por nível, modelo, cidade e empresa; compara perfil x mercado

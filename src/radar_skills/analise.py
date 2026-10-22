@@ -23,6 +23,7 @@ def enriquecer(vagas: list[dict]) -> list[dict]:
             "modelo": MODELOS.get(v.get("workplaceType"), v.get("workplaceType") or "não informado"),
             "publicada": (v.get("publishedDate") or "")[:10],
             "url": v.get("jobUrl") or "",
+            "fonte": v.get("fonte", "gupy"),
             "nivel": nivel(v.get("name") or ""),
             "skills": sorted(extrair(texto)),
         })

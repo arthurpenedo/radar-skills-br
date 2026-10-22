@@ -107,6 +107,20 @@ def test_html_escapa_e_tem_filtro():
     assert 'data-nivel="júnior/trainee"' in html.replace("'", '"') and "vagas analisadas" in html
 
 
+def test_exportar_gera_tabelas_ligadas_pelo_id(tmp_path, capsys):
+    import csv
+    arquivo = tmp_path / "vagas.json"
+    arquivo.write_text(json.dumps({"dias": 30, "vagas": analise.enriquecer(VAGAS)}), encoding="utf-8")
+    assert main(["exportar", str(arquivo), "--pasta", str(tmp_path / "pb")]) == 0
+    vagas = list(csv.DictReader(open(tmp_path / "pb" / "vagas.csv", encoding="utf-8-sig")))
+    pares = list(csv.DictReader(open(tmp_path / "pb" / "vaga_skill.csv", encoding="utf-8-sig")))
+    assert [v["id"] for v in vagas] == ["1", "2", "3", "4"] and vagas[0]["nivel"] == "júnior/trainee"
+    assert vagas[0]["fonte"] == "gupy" and vagas[2]["modelo"] == "presencial"
+    assert {"id": "1", "skill": "Python"} in pares and {"id": "3", "skill": "Power BI / BI"} in pares
+    assert {p["id"] for p in pares} <= {v["id"] for v in vagas}
+    assert f"{len(pares)} pares" in capsys.readouterr().out
+
+
 def test_cli_relatorio_e_lacunas(tmp_path, capsys):
     arquivo = tmp_path / "vagas.json"
     arquivo.write_text(json.dumps({"dias": 30, "vagas": analise.enriquecer(VAGAS)}), encoding="utf-8")

@@ -28,8 +28,8 @@ jobs:
           python-version: "3.13"
       - run: pip install -e ".[dev]"
       - run: pytest -q
-      - name: Coletar vagas na Gupy
-        run: radar-skills coletar --saida vagas.json
+      - name: Coletar vagas (Gupy + remotas internacionais)
+        run: radar-skills coletar --saida vagas.json --remotas
       - name: Gerar relatório
         run: |
           radar-skills relatorio vagas.json --html site/index.html --resumo site/resumo.json
