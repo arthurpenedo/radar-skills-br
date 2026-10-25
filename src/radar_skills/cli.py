@@ -27,6 +27,8 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("vagas")
     r.add_argument("--html", default="site/index.html")
     r.add_argument("--resumo", default="site/resumo.json")
+    r.add_argument("--anterior", help="vagas.json da coleta anterior: o relatório ganha a seção 'vagas novas' "
+                                      "(arquivo que não existe é ignorado)")
 
     e = sub.add_parser("exportar", help="grava vagas.csv e vaga_skill.csv (para o Power BI) a partir das vagas coletadas")
     e.add_argument("vagas")
@@ -58,12 +60,20 @@ def main(argv: list[str] | None = None) -> int:
     elif args.comando == "relatorio":
         dados = json.loads(Path(args.vagas).read_text(encoding="utf-8"))
         resumo = analise.resumir(dados["vagas"], dias=dados.get("dias", 30))
-        for destino, conteudo in ((args.html, relatorio.gerar_html(resumo, dados["vagas"])),
+        novas = None
+        if args.anterior and Path(args.anterior).is_file():
+            try:
+                novas = analise.novas(dados["vagas"], json.loads(Path(args.anterior).read_text(encoding="utf-8"))["vagas"])
+            except (ValueError, KeyError):  # download quebrado no CI: gera o relatório sem a seção
+                print(f"Aviso: {args.anterior} não é um vagas.json válido; seção de vagas novas omitida.")
+        for destino, conteudo in ((args.html, relatorio.gerar_html(resumo, dados["vagas"], novas=novas)),
                                   (args.resumo, json.dumps(resumo, ensure_ascii=False, indent=1))):
             Path(destino).parent.mkdir(parents=True, exist_ok=True)
             Path(destino).write_text(conteudo, encoding="utf-8")
         top = ", ".join(f"{r['skill']} {r['pct']:.0f}%" for r in resumo["skills"][:5])
         print(f"{resumo['vagas']} vagas · mais pedidas: {top}\nRelatório: {args.html}")
+        if novas is not None:
+            print(f"{len(novas)} vagas novas desde a coleta anterior")
     else:
         resumo = json.loads(Path(args.resumo).read_text(encoding="utf-8"))
         perfil = set(json.loads(Path(args.perfil).read_text(encoding="utf-8"))["skills"])

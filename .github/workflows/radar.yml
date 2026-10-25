@@ -30,9 +30,11 @@ jobs:
       - run: pytest -q
       - name: Coletar vagas (Gupy + remotas internacionais)
         run: radar-skills coletar --saida vagas.json --remotas
+      - name: Baixar a coleta anterior (para a seção "vagas novas")
+        run: curl -fsSL -o anterior.json https://arthurpenedo.github.io/radar-skills-br/vagas.json || echo "sem coleta anterior"
       - name: Gerar relatório
         run: |
-          radar-skills relatorio vagas.json --html site/index.html --resumo site/resumo.json
+          radar-skills relatorio vagas.json --html site/index.html --resumo site/resumo.json --anterior anterior.json
           cp vagas.json site/vagas.json
       - name: Lacunas do perfil de exemplo (no log)
         run: radar-skills lacunas site/resumo.json exemplos/perfil.json

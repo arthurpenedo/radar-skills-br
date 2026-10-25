@@ -121,6 +121,26 @@ def test_exportar_gera_tabelas_ligadas_pelo_id(tmp_path, capsys):
     assert f"{len(pares)} pares" in capsys.readouterr().out
 
 
+def test_novas_compara_pelo_link_e_aparece_no_relatorio(tmp_path, capsys):
+    linhas = analise.enriquecer(VAGAS + [_vaga(5, "Analista de IA Júnior", "python", publicada="2026-10-18")])
+    anterior = analise.enriquecer(VAGAS[:2])
+    novas = analise.novas(linhas, anterior)
+    assert [v["url"][-1] for v in novas] == ["5", "3", "4"]  # mais recente primeiro; 1 e 2 já existiam
+    html = relatorio.gerar_html(analise.resumir(linhas, hoje=HOJE), linhas, novas=novas)
+    assert "Vagas novas desde a última coleta (3)" in html
+    assert "Vagas novas" not in relatorio.gerar_html(analise.resumir(linhas, hoje=HOJE), linhas)  # sem coleta anterior
+
+    atual, antes = tmp_path / "vagas.json", tmp_path / "anterior.json"
+    atual.write_text(json.dumps({"dias": 30, "vagas": linhas}), encoding="utf-8")
+    antes.write_text(json.dumps({"dias": 30, "vagas": anterior}), encoding="utf-8")
+    saida = ["--html", str(tmp_path / "i.html"), "--resumo", str(tmp_path / "r.json")]
+    assert main(["relatorio", str(atual), *saida, "--anterior", str(antes)]) == 0
+    assert "3 vagas novas" in capsys.readouterr().out
+    antes.write_text("isto não é json", encoding="utf-8")  # download quebrado não derruba o relatório
+    assert main(["relatorio", str(atual), *saida, "--anterior", str(antes)]) == 0
+    assert main(["relatorio", str(atual), *saida, "--anterior", str(tmp_path / "nao-existe.json")]) == 0
+
+
 def test_cli_relatorio_e_lacunas(tmp_path, capsys):
     arquivo = tmp_path / "vagas.json"
     arquivo.write_text(json.dumps({"dias": 30, "vagas": analise.enriquecer(VAGAS)}), encoding="utf-8")

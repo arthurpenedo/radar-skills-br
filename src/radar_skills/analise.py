@@ -30,6 +30,12 @@ def enriquecer(vagas: list[dict]) -> list[dict]:
     return linhas
 
 
+def novas(linhas: list[dict], anteriores: list[dict]) -> list[dict]:
+    """Vagas de `linhas` que não estavam na coleta anterior (compara pelo link), das mais recentes para as mais antigas."""
+    vistas = {v["url"] for v in anteriores}
+    return sorted((v for v in linhas if v["url"] not in vistas), key=lambda v: v["publicada"], reverse=True)
+
+
 def _ranking(contagem: Counter, total: int) -> list[dict]:
     return [{"skill": s, "vagas": c, "pct": round(100 * c / total, 1) if total else 0.0}
             for s, c in sorted(contagem.items(), key=lambda kv: (-kv[1], kv[0]))]

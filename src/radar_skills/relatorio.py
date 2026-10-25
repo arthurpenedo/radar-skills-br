@@ -38,7 +38,21 @@ def _tabela(dados: dict, titulo: str) -> str:
     return f"<table><tr><th>{escape(titulo)}</th><th class='num'>vagas</th></tr>{linhas}</table>"
 
 
-def gerar_html(resumo: dict, linhas: list[dict], titulo: str = "radar-skills-br") -> str:
+def _secao_novas(novas: list[dict] | None) -> str:
+    """Lista das vagas que apareceram desde a coleta anterior (None = sem coleta anterior para comparar)."""
+    if novas is None:
+        return ""
+    if not novas:
+        return "<h2>Vagas novas desde a última coleta</h2><p class='mut'>Nenhuma vaga nova.</p>"
+    itens = "".join(
+        f"<li><a href='{escape(v['url'])}' rel='noopener'>{escape(v['titulo'])}</a> "
+        f"<span class='mut'>· {escape(v['empresa'])} · {escape(v['nivel'])} · {escape(v['modelo'])}</span></li>"
+        for v in novas[:30])
+    resto = f"<p class='mut'>E mais {len(novas) - 30} na lista abaixo.</p>" if len(novas) > 30 else ""
+    return f"<h2>Vagas novas desde a última coleta ({len(novas)})</h2><ul>{itens}</ul>{resto}"
+
+
+def gerar_html(resumo: dict, linhas: list[dict], titulo: str = "radar-skills-br", novas: list[dict] | None = None) -> str:
     n = resumo["vagas"]
     niveis = resumo["niveis"]
     remoto = resumo["modelos"].get("remoto", 0)
@@ -61,6 +75,7 @@ def gerar_html(resumo: dict, linhas: list[dict], titulo: str = "radar-skills-br"
 <p class="mut">Vagas de IA, dados, automação e desenvolvimento publicadas na Gupy nos últimos {resumo['janela_dias']} dias.
 Atualizado em {escape(resumo['gerado_em'])}. Contagem por palavra-chave na descrição: é aproximada (veja os limites no README).</p>
 <div class="cards">{''.join(f'<div class="card"><b>{v}</b><span class="mut">{escape(k)}</span></div>' for k, v in cards)}</div>
+{_secao_novas(novas)}
 <h2>Habilidades mais pedidas (todas as vagas)</h2>{_barras(resumo['skills'], 25)}
 <h2>Por nível</h2><div class="grid">{por_nivel}</div>
 <h2>Onde estão</h2><div class="grid">{_tabela(resumo['modelos'], 'modelo')}{_tabela(resumo['cidades'], 'cidade')}</div>
