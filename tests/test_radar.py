@@ -47,6 +47,27 @@ def test_extrair_nao_confunde_palavras_parecidas():
     assert extrair("restante do time, fazer a manutenção e o desenvolvimento") == set()
 
 
+@pytest.mark.parametrize("texto", [
+    "inglês não é necessário para a vaga",
+    "sem inglês, só português",
+    "não exigimos inglês",
+    "não é obrigatório conhecimento de inglês",
+    "english não necessário",
+])
+def test_ingles_negado_nao_conta(texto):
+    assert "Inglês" not in extrair(texto)
+
+
+@pytest.mark.parametrize("texto", [
+    "inglês avançado",
+    "inglês não é necessário, mas inglês intermediário é um diferencial",
+    "fluent english",
+    "não é necessário experiência prévia; inglês para leitura de documentação",
+])
+def test_ingles_exigido_continua_contando(texto):
+    assert "Inglês" in extrair(texto)
+
+
 @pytest.mark.parametrize("titulo,esperado", [
     ("Estágio em IA", "estágio"), ("Analista de Dados Jr.", "júnior/trainee"), ("Programa Trainee 2027", "júnior/trainee"),
     ("Engenheiro(a) de IA - Pleno", "pleno"), ("Especialista em Dados", "sênior+"), ("Desenvolvedor Python", "não informado"),

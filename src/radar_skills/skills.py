@@ -63,9 +63,26 @@ def limpar(texto: str) -> str:
     return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", texto or ""))).strip().lower()
 
 
+# "inglês não é necessário", "sem inglês", "não exigimos inglês": a vaga cita o idioma para dizer que NÃO pede.
+_INGLES_NEGADO = re.compile(
+    r"\b(?:sem|n[aã]o (?:exig\w+|requer\w*|precisa\w*|pedimos|[eé] (?:necess[aá]ri[oa]|obrigat[oó]ri[oa]|exigid[oa]|requerid[oa])))"
+    r"\s+(?:(?:o|de|nenhum|conhecimento|dom[ií]nio|fluência|fluencia)\s+){0,3}(?:ingl[eê]s|english)\b"
+    r"|\b(?:ingl[eê]s|english)\s+n[aã]o\s+(?:[eé]\s+)?(?:necess[aá]ri[oa]|obrigat[oó]ri[oa]|exigid[oa]|requerid[oa]|exigido|requerido)",
+)
+
+
+def _cita_ingles_sem_negar(texto: str) -> bool:
+    """Verdadeiro se há menção a inglês fora das frases que dizem que ele não é necessário."""
+    sem_negacao = _INGLES_NEGADO.sub(" ", texto)
+    return bool(_COMPILADAS["Inglês"].search(sem_negacao))
+
+
 def extrair(texto: str) -> set[str]:
     """Habilidades citadas num texto já limpo."""
-    return {nome for nome, rx in _COMPILADAS.items() if rx.search(texto)}
+    achadas = {nome for nome, rx in _COMPILADAS.items() if rx.search(texto)}
+    if "Inglês" in achadas and not _cita_ingles_sem_negar(texto):
+        achadas.discard("Inglês")
+    return achadas
 
 
 def nivel(titulo: str) -> str:

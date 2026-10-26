@@ -1,7 +1,7 @@
 ---
 tipo: gerada
 ---
-# Hoje · quinta 22/10
+# Hoje · segunda 26/10
 
 > Gerada sozinha a partir de [[Tarefas]] e [[Para o Claude]]. Não edite aqui: edite lá.
 
