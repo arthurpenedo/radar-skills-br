@@ -7,7 +7,7 @@ import json
 from datetime import date, timedelta
 from pathlib import Path
 
-from . import analise, coleta, exportar, relatorio
+from . import analise, coleta, exportar, historico, relatorio
 from . import remotas as remotas_mod
 
 
@@ -29,6 +29,11 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--resumo", default="site/resumo.json")
     r.add_argument("--anterior", help="vagas.json da coleta anterior: o relatório ganha a seção 'vagas novas' "
                                       "(arquivo que não existe é ignorado)")
+
+    r.add_argument("--historico", help="pasta do histórico diário (grava o resumo de hoje e mostra a tendência das 10 "
+                                       "habilidades mais pedidas)")
+    r.add_argument("--historico-anterior", help="historico.json publicado na execução anterior (é desempacotado na "
+                                                "pasta do histórico; arquivo ausente ou quebrado é ignorado)")
 
     e = sub.add_parser("exportar", help="grava vagas.csv e vaga_skill.csv (para o Power BI) a partir das vagas coletadas")
     e.add_argument("vagas")
@@ -66,7 +71,14 @@ def main(argv: list[str] | None = None) -> int:
                 novas = analise.novas(dados["vagas"], json.loads(Path(args.anterior).read_text(encoding="utf-8"))["vagas"])
             except (ValueError, KeyError):  # download quebrado no CI: gera o relatório sem a seção
                 print(f"Aviso: {args.anterior} não é um vagas.json válido; seção de vagas novas omitida.")
-        for destino, conteudo in ((args.html, relatorio.gerar_html(resumo, dados["vagas"], novas=novas)),
+        tend = None
+        if args.historico:
+            if args.historico_anterior:
+                historico.importar(args.historico_anterior, args.historico)
+            historico.gravar(resumo, args.historico)
+            tend = historico.tendencia(historico.carregar(args.historico))
+            historico.empacotar(args.historico, Path(args.html).parent / "historico.json")
+        for destino, conteudo in ((args.html, relatorio.gerar_html(resumo, dados["vagas"], novas=novas, tendencia=tend)),
                                   (args.resumo, json.dumps(resumo, ensure_ascii=False, indent=1))):
             Path(destino).parent.mkdir(parents=True, exist_ok=True)
             Path(destino).write_text(conteudo, encoding="utf-8")

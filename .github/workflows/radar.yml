@@ -32,9 +32,12 @@ jobs:
         run: radar-skills coletar --saida vagas.json --remotas
       - name: Baixar a coleta anterior (para a seção "vagas novas")
         run: curl -fsSL -o anterior.json https://arthurpenedo.github.io/radar-skills-br/vagas.json || echo "sem coleta anterior"
+      - name: Baixar o histórico publicado (tendência das habilidades)
+        run: curl -fsSL -o historico-anterior.json https://arthurpenedo.github.io/radar-skills-br/historico.json || echo "sem histórico anterior"
       - name: Gerar relatório
         run: |
-          radar-skills relatorio vagas.json --html site/index.html --resumo site/resumo.json --anterior anterior.json
+          radar-skills relatorio vagas.json --html site/index.html --resumo site/resumo.json --anterior anterior.json \
+            --historico historico --historico-anterior historico-anterior.json
           cp vagas.json site/vagas.json
       - name: Lacunas do perfil de exemplo (no log)
         run: radar-skills lacunas site/resumo.json exemplos/perfil.json

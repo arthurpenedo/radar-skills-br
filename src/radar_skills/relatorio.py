@@ -52,7 +52,21 @@ def _secao_novas(novas: list[dict] | None) -> str:
     return f"<h2>Vagas novas desde a última coleta ({len(novas)})</h2><ul>{itens}</ul>{resto}"
 
 
-def gerar_html(resumo: dict, linhas: list[dict], titulo: str = "radar-skills-br", novas: list[dict] | None = None) -> str:
+def _secao_tendencia(tend: dict | None) -> str:
+    """Tabela das habilidades mais pedidas com a variação desde o primeiro dia do histórico (None = histórico curto)."""
+    if not tend:
+        return ""
+    linhas = "".join(
+        f"<tr><td>{escape(r['skill'])}</td><td class='num'>{r['inicio']:.1f}%</td><td class='num'>{r['pct']:.1f}%</td>"
+        f"<td class='num'>{r['variacao']:+.1f} p.p.</td></tr>" for r in tend["skills"])
+    return (f"<h2>Tendência das habilidades mais pedidas</h2><p class='mut'>Do histórico diário: {tend['dias']} dias, "
+            f"de {escape(tend['de'])} a {escape(tend['ate'])}. p.p. = pontos percentuais.</p>"
+            f"<table><tr><th>habilidade</th><th class='num'>início</th><th class='num'>agora</th>"
+            f"<th class='num'>variação</th></tr>{linhas}</table>")
+
+
+def gerar_html(resumo: dict, linhas: list[dict], titulo: str = "radar-skills-br", novas: list[dict] | None = None,
+               tendencia: dict | None = None) -> str:
     n = resumo["vagas"]
     niveis = resumo["niveis"]
     remoto = resumo["modelos"].get("remoto", 0)
@@ -77,6 +91,7 @@ Atualizado em {escape(resumo['gerado_em'])}. Contagem por palavra-chave na descr
 <div class="cards">{''.join(f'<div class="card"><b>{v}</b><span class="mut">{escape(k)}</span></div>' for k, v in cards)}</div>
 {_secao_novas(novas)}
 <h2>Habilidades mais pedidas (todas as vagas)</h2>{_barras(resumo['skills'], 25)}
+{_secao_tendencia(tendencia)}
 <h2>Por nível</h2><div class="grid">{por_nivel}</div>
 <h2>Onde estão</h2><div class="grid">{_tabela(resumo['modelos'], 'modelo')}{_tabela(resumo['cidades'], 'cidade')}</div>
 <h2>Quem mais publicou</h2>{_tabela(resumo['empresas'], 'empresa')}

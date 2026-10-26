@@ -59,8 +59,9 @@ radar-skills coletar --saida vagas.json            # ~2 min, 12 buscas na Gupy
 radar-skills coletar --saida vagas.json --remotas  # soma remotas internacionais que aceitam Brasil/LATAM/mundo
 radar-skills exportar vagas.json --pasta powerbi   # vagas.csv + vaga_skill.csv (modelo estrela) para o Power BI
 radar-skills relatorio vagas.json                  # site/index.html + site/resumo.json
+radar-skills relatorio vagas.json --historico historico  # + guarda o dia em historico/ e mostra a tendência das 10 habilidades
 radar-skills lacunas site/resumo.json exemplos/perfil.json --nivel "júnior/trainee"
-pytest -q                                          # 20 testes, sem internet
+pytest -q                                          # 50 testes, sem internet
 ```
 
 Para o seu perfil, copie `exemplos/perfil.json` e liste as habilidades que você consegue **mostrar** (projeto, experiência), usando os nomes do catálogo.
