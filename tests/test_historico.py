@@ -1,10 +1,10 @@
 import json
 from datetime import date
 
+from test_radar import HOJE, VAGAS
+
 from radar_skills import analise, historico, relatorio
 from radar_skills.cli import main
-
-from test_radar import HOJE, VAGAS
 
 
 def _resumo(dia, pcts, vagas=10):

@@ -13,7 +13,7 @@ authors = [{ name = "Arthur Penedo" }]
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "ruff>=0.6"]
 
 [project.scripts]
 radar-skills = "radar_skills.cli:main"
