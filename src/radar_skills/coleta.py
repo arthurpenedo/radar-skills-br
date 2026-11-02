@@ -9,8 +9,8 @@ import json
 import time
 import urllib.parse
 import urllib.request
+from collections.abc import Callable, Iterable
 from datetime import date, timedelta
-from typing import Callable, Iterable
 
 URL = "https://portal.gupy.io/api/job-search/jobs"
 TERMOS_PADRAO = [

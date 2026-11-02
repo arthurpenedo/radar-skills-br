@@ -11,8 +11,8 @@ import json
 import re
 import urllib.request
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
-from typing import Callable
+from collections.abc import Callable
+from datetime import UTC, datetime
 
 URLS = {
     "remotive": "https://remotive.com/api/remote-jobs",
@@ -25,7 +25,7 @@ URLS = {
 Baixar = Callable[[str], str]
 
 _ACEITA = re.compile(r"\b(brazil|brasil|latam|latin america|south america|americas|worldwide|anywhere|global|"
-                     r"world ?wide|everywhere|international)\b", re.I)
+                     r"world ?wide|everywhere|international)\b", re.IGNORECASE)
 
 
 def _baixar_http(url: str) -> str:
@@ -48,13 +48,13 @@ def _vaga(fonte: str, id_, titulo, empresa, descricao, url, publicada, local) ->
 def _data(valor) -> str:
     """Data ISO (AAAA-MM-DD...) a partir de texto ISO, RFC 822 (RSS) ou segundos desde 1970."""
     if isinstance(valor, (int, float)):
-        return datetime.fromtimestamp(valor, timezone.utc).isoformat()
+        return datetime.fromtimestamp(valor, UTC).isoformat()
     texto = str(valor or "").strip()
     if re.fullmatch(r"\d{9,10}", texto):
         return _data(int(texto))
     for formato in ("%a, %d %b %Y %H:%M:%S %z", "%a, %d %b %Y %H:%M:%S %Z"):
         try:
-            return datetime.strptime(texto, formato).astimezone(timezone.utc).isoformat()
+            return datetime.strptime(texto, formato).astimezone(UTC).isoformat()
         except ValueError:
             pass
     return texto.replace(" ", "T")
