@@ -90,3 +90,19 @@ def test_remotas_entram_na_analise_com_fonte_e_nivel():
     assert por_titulo["ML Engineer (Intern)"]["nivel"] == "estágio"
     assert por_titulo["Junior AI Engineer"]["fonte"] == "remotive" and "Python" in por_titulo["Junior AI Engineer"]["skills"]
     assert analise.resumir(linhas)["modelos"] == {"remoto": 6}
+
+
+def test_ler_workingnomads_normaliza_campos_e_data():
+    bruto = json.dumps([{"url": "https://x.io/j/1", "title": " Dev Python ", "company_name": "Acme ",
+                         "description": "Python e SQL", "pub_date": "2026-10-30 12:00:00", "location": " Anywhere "}])
+    [v] = remotas.ler_workingnomads(bruto)
+    assert v["id"] == "workingnomads:https://x.io/j/1"
+    assert v["name"] == "Dev Python" and v["careerPageName"] == "Acme"
+    assert v["publishedDate"] == "2026-10-30T12:00:00"
+    assert v["local"] == "Anywhere" and v["workplaceType"] == "remote"
+
+
+def test_ler_workingnomads_lista_vazia_e_campos_ausentes():
+    assert remotas.ler_workingnomads("[]") == []
+    [v] = remotas.ler_workingnomads(json.dumps([{"url": "https://x.io/2"}]))
+    assert v["name"] == "" and v["description"] == "" and v["local"] == ""
