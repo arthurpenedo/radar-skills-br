@@ -133,8 +133,11 @@ def test_exportar_gera_tabelas_ligadas_pelo_id(tmp_path, capsys):
     arquivo = tmp_path / "vagas.json"
     arquivo.write_text(json.dumps({"dias": 30, "vagas": analise.enriquecer(VAGAS)}), encoding="utf-8")
     assert main(["exportar", str(arquivo), "--pasta", str(tmp_path / "pb")]) == 0
-    vagas = list(csv.DictReader(open(tmp_path / "pb" / "vagas.csv", encoding="utf-8-sig")))
-    pares = list(csv.DictReader(open(tmp_path / "pb" / "vaga_skill.csv", encoding="utf-8-sig")))
+    def ler(nome):
+        with open(tmp_path / "pb" / nome, encoding="utf-8-sig") as f:
+            return list(csv.DictReader(f))
+
+    vagas, pares = ler("vagas.csv"), ler("vaga_skill.csv")
     assert [v["id"] for v in vagas] == ["1", "2", "3", "4"] and vagas[0]["nivel"] == "júnior/trainee"
     assert vagas[0]["fonte"] == "gupy" and vagas[2]["modelo"] == "presencial"
     assert {"id": "1", "skill": "Python"} in pares and {"id": "3", "skill": "Power BI / BI"} in pares
