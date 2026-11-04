@@ -120,7 +120,7 @@ def coletar_remotas(fontes: list[str] | None = None, baixar: Baixar = _baixar_ht
     for fonte in fontes or list(LEITORES):
         try:
             lidas = LEITORES[fonte](baixar(URLS[fonte]))
-        except Exception as erro:  # rede, JSON ou XML fora do formato: registra e segue
+        except (OSError, ValueError, KeyError, TypeError, ET.ParseError) as erro:  # rede, JSON ou XML fora do formato: registra e segue
             relatorio[fonte] = {"erro": f"{type(erro).__name__}: {erro}"}
             continue
         aceitas = [v for v in lidas if aceita_brasil(v["local"])]
