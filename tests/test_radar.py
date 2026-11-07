@@ -10,6 +10,25 @@ from radar_skills.skills import SKILLS, extrair, limpar, nivel
 HOJE = date(2026, 10, 19)
 
 
+def test_cli_coletar_com_remotas_descarta_vagas_fora_da_janela(tmp_path, monkeypatch, capsys):
+    from datetime import timedelta
+
+    from radar_skills import cli
+
+    hoje = date.today()
+    nova = {"id": "r:1", "name": "Junior AI Engineer", "description": "Python", "careerPageName": "Acme",
+            "publishedDate": hoje.isoformat(), "jobUrl": "https://x/1", "workplaceType": "remote"}
+    velha = {**nova, "id": "r:2", "publishedDate": (hoje - timedelta(days=30)).isoformat()}
+    monkeypatch.setattr(cli.coleta, "coletar", lambda termos, dias: [])
+    monkeypatch.setattr(cli.remotas_mod, "coletar_remotas",
+                        lambda: ([nova, velha], {"remotive": {"lidas": 2, "aceitam_brasil": 2}}))
+    saida = tmp_path / "vagas.json"
+    assert main(["coletar", "--remotas", "--dias", "7", "--saida", str(saida)]) == 0
+    dados = json.loads(saida.read_text(encoding="utf-8"))
+    assert len(dados["vagas"]) == 1
+    assert "remotive: 2 de 2 aceitam o Brasil" in capsys.readouterr().out
+
+
 def _vaga(id_, nome, desc, publicada="2026-10-10", modelo="remote", cidade=""):
     return {"id": id_, "name": nome, "description": desc, "careerPageName": f"Empresa {id_}", "city": cidade,
             "state": "", "workplaceType": modelo, "publishedDate": f"{publicada}T10:00:00.000Z",
