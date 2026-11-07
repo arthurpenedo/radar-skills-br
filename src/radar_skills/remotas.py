@@ -54,7 +54,10 @@ def _data(valor) -> str:
         return _data(int(texto))
     for formato in ("%a, %d %b %Y %H:%M:%S %z", "%a, %d %b %Y %H:%M:%S %Z"):
         try:
-            return datetime.strptime(texto, formato).astimezone(UTC).isoformat()
+            momento = datetime.strptime(texto, formato)
+            if momento.tzinfo is None:  # "GMT"/"UTC" no texto: sem isto, astimezone usaria o fuso do PC
+                momento = momento.replace(tzinfo=UTC)
+            return momento.astimezone(UTC).isoformat()
         except ValueError:
             pass
     return texto.replace(" ", "T")

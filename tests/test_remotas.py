@@ -106,3 +106,16 @@ def test_ler_workingnomads_lista_vazia_e_campos_ausentes():
     assert remotas.ler_workingnomads("[]") == []
     [v] = remotas.ler_workingnomads(json.dumps([{"url": "https://x.io/2"}]))
     assert v["name"] == "" and v["description"] == "" and v["local"] == ""
+
+
+@pytest.mark.parametrize(("bruto", "prefixo"), [
+    ("Tue, 20 Oct 2026 10:00:00 +0000", "2026-10-20T10:00:00"),
+    ("Tue, 20 Oct 2026 10:00:00 GMT", "2026-10-20T10:00:00"),
+    (1792490400, "2026-10-20"),
+    ("1792490400", "2026-10-20"),
+    ("2026-10-20 10:00:00", "2026-10-20T10:00:00"),
+    (None, ""),
+])
+def test_data_aceita_rfc822_epoch_e_texto_cru(bruto, prefixo):
+    resultado = remotas._data(bruto)
+    assert resultado.startswith(prefixo)
