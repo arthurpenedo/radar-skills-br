@@ -49,6 +49,16 @@ def test_importar_nao_sobrescreve_e_aguenta_arquivo_ruim(tmp_path):
     assert historico.importar(tmp_path / "nao-existe.json", pasta) == 0
 
 
+def test_importar_ignora_data_invalida_e_nao_escreve_fora_da_pasta(tmp_path):
+    origem, pasta = tmp_path / "historico.json", tmp_path / "h"
+    bom = {"gerado_em": "2026-10-19", "vagas": 1, "skills": {"Python": 1.0}}
+    mau = {"gerado_em": "../fugiu", "vagas": 1, "skills": {}}
+    origem.write_text(json.dumps({"dias": [mau, {"vagas": 2}, bom]}), encoding="utf-8")
+    assert historico.importar(origem, pasta) == 1  # o dia bom entra mesmo depois dos ruins
+    assert [p.name for p in pasta.iterdir()] == ["2026-10-19.json"]
+    assert not (tmp_path / "fugiu.json").exists()
+
+
 def test_html_mostra_tendencia_so_com_historico():
     linhas = analise.enriquecer(VAGAS)
     resumo = analise.resumir(linhas, hoje=HOJE)

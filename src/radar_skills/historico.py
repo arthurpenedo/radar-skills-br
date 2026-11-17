@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import date
 from pathlib import Path
 
 
@@ -44,6 +45,10 @@ def importar(arquivo: str | Path, pasta: str | Path) -> int:
         novos = 0
         Path(pasta).mkdir(parents=True, exist_ok=True)
         for d in dias:
+            try:  # o nome do arquivo vem de fora: só data de verdade (barra ou ".." não passam)
+                date.fromisoformat(d["gerado_em"])
+            except (ValueError, KeyError, TypeError):
+                continue
             destino = Path(pasta) / f"{d['gerado_em']}.json"
             if not destino.exists():
                 destino.write_text(json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")
