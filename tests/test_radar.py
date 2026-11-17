@@ -128,6 +128,14 @@ def test_resumir_conta_por_nivel_e_modelo():
     assert {"Python", "Java", "LangChain/LangGraph"} <= junior and "Spark / dbt / Airflow" not in junior
 
 
+def test_vaga_sem_campos_e_coleta_vazia_nao_quebram():
+    (linha,) = analise.enriquecer([{}])
+    assert linha["titulo"] == "" and linha["skills"] == [] and linha["modelo"] == "não informado"
+    resumo = analise.resumir([], hoje=HOJE)
+    assert resumo["vagas"] == 0 and resumo["skills"] == [] and resumo["skills_por_nivel"] == {}
+    assert analise.lacunas(resumo, {"Python"}) == {"base": "todas", "cobre": [], "falta": []}
+
+
 def test_lacunas_separa_o_que_cobre_e_o_que_falta():
     resumo = analise.resumir(analise.enriquecer(VAGAS), hoje=HOJE)
     res = analise.lacunas(resumo, {"Python", "SQL"}, "júnior/trainee")
