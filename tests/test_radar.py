@@ -203,3 +203,18 @@ def test_cli_relatorio_e_lacunas(tmp_path, capsys):
     assert main(["lacunas", str(resumo), str(perfil)]) == 0
     saida = capsys.readouterr().out
     assert "Já cobre:  Python" in saida and "SQL" in saida.split("Falta:")[1]
+
+
+def test_cli_entrada_ausente_ou_quebrada_devolve_2(tmp_path, capsys):
+    ruim = tmp_path / "ruim.json"
+    ruim.write_text("{quebrado", encoding="utf-8")
+    sem_chave = tmp_path / "s.json"
+    sem_chave.write_text("[]", encoding="utf-8")
+    for args in (["relatorio", str(tmp_path / "nao.json"), "--html", str(tmp_path / "o.html")],
+                 ["relatorio", str(ruim), "--html", str(tmp_path / "o.html")],
+                 ["exportar", str(sem_chave), "--pasta", str(tmp_path / "p")],
+                 ["lacunas", str(sem_chave), str(ruim)]):
+        assert main(args) == 2
+        err = capsys.readouterr().err
+        assert "não consegui ler" in err or "formato esperado" in err
+    assert not (tmp_path / "o.html").exists()

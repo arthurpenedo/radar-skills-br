@@ -4,11 +4,25 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from datetime import date, timedelta
 from pathlib import Path
 
 from . import analise, coleta, exportar, historico, relatorio
 from . import remotas as remotas_mod
+
+
+def _ler_json(caminho: str, chave: str) -> dict | None:
+    """Lê um JSON de entrada; arquivo ausente ou quebrado vira mensagem, não traceback."""
+    try:
+        dados = json.loads(Path(caminho).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        print(f"Erro: não consegui ler {caminho}: {e}", file=sys.stderr)
+        return None
+    if not isinstance(dados, dict) or chave not in dados:
+        print(f"Erro: {caminho} não tem o formato esperado (falta a chave '{chave}').", file=sys.stderr)
+        return None
+    return dados
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -59,11 +73,15 @@ def main(argv: list[str] | None = None) -> int:
                                     encoding="utf-8")
         print(f"{len(linhas)} vagas salvas em {args.saida}")
     elif args.comando == "exportar":
-        dados = json.loads(Path(args.vagas).read_text(encoding="utf-8"))
+        dados = _ler_json(args.vagas, "vagas")
+        if dados is None:
+            return 2
         n = exportar.exportar(dados["vagas"], args.pasta)
         print(f"{n['vagas']} vagas e {n['pares_vaga_skill']} pares vaga-habilidade em {args.pasta}/")
     elif args.comando == "relatorio":
-        dados = json.loads(Path(args.vagas).read_text(encoding="utf-8"))
+        dados = _ler_json(args.vagas, "vagas")
+        if dados is None:
+            return 2
         resumo = analise.resumir(dados["vagas"], dias=dados.get("dias", 30))
         novas = None
         if args.anterior and Path(args.anterior).is_file():
@@ -87,8 +105,10 @@ def main(argv: list[str] | None = None) -> int:
         if novas is not None:
             print(f"{len(novas)} vagas novas desde a coleta anterior")
     else:
-        resumo = json.loads(Path(args.resumo).read_text(encoding="utf-8"))
-        perfil = set(json.loads(Path(args.perfil).read_text(encoding="utf-8"))["skills"])
+        resumo, perfil_json = _ler_json(args.resumo, "skills"), _ler_json(args.perfil, "skills")
+        if resumo is None or perfil_json is None:
+            return 2
+        perfil = set(perfil_json["skills"])
         res = analise.lacunas(resumo, perfil, args.nivel, args.minimo)
         print(f"Base: vagas {res['base']}")
         print("Já cobre:  " + (", ".join(f"{r['skill']} ({r['pct']:.0f}%)" for r in res["cobre"]) or "nada"))
