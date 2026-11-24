@@ -218,3 +218,10 @@ def test_cli_entrada_ausente_ou_quebrada_devolve_2(tmp_path, capsys):
         err = capsys.readouterr().err
         assert "não consegui ler" in err or "formato esperado" in err
     assert not (tmp_path / "o.html").exists()
+
+
+def test_cli_coletar_com_dias_zero_ou_negativo_devolve_2(tmp_path, capsys):
+    for dias in ("0", "-3"):
+        assert main(["coletar", "--dias", dias, "--saida", str(tmp_path / "v.json")]) == 2
+        assert "--dias" in capsys.readouterr().err
+    assert not (tmp_path / "v.json").exists()

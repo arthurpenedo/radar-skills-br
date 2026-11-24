@@ -60,6 +60,9 @@ def main(argv: list[str] | None = None) -> int:
     lc.add_argument("--minimo", type=float, default=5.0, help="só habilidades citadas em pelo menos X%% das vagas")
 
     args = p.parse_args(argv)
+    if args.comando == "coletar" and args.dias < 1:
+        print("Erro: --dias precisa ser 1 ou mais.", file=sys.stderr)
+        return 2
     if args.comando == "coletar":
         brutas = coleta.coletar(args.termo or coleta.TERMOS_PADRAO, dias=args.dias)
         if args.remotas:
