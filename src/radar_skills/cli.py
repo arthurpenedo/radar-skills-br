@@ -25,6 +25,18 @@ def _ler_json(caminho: str, chave: str) -> dict | None:
     return dados
 
 
+def _destino_ruim(opcao: str, caminho: str, pasta: bool = False) -> bool:
+    """Avisa (sem traceback) quando --saida/--html apontam para uma pasta, ou --pasta para um arquivo."""
+    p = Path(caminho)
+    if pasta and p.is_file():
+        print(f"Erro: {opcao} precisa ser uma pasta, mas {caminho} é um arquivo.", file=sys.stderr)
+        return True
+    if not pasta and p.is_dir():
+        print(f"Erro: {opcao} precisa ser um arquivo, mas {caminho} é uma pasta.", file=sys.stderr)
+        return True
+    return False
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="radar-skills", description="O que as vagas de tecnologia no Brasil pedem")
     sub = p.add_subparsers(dest="comando", required=True)
@@ -62,6 +74,12 @@ def main(argv: list[str] | None = None) -> int:
     args = p.parse_args(argv)
     if args.comando == "coletar" and args.dias < 1:
         print("Erro: --dias precisa ser 1 ou mais.", file=sys.stderr)
+        return 2
+    if args.comando == "coletar" and _destino_ruim("--saida", args.saida):
+        return 2  # antes de baixar: não gasta a coleta para falhar na hora de gravar
+    if args.comando == "relatorio" and (_destino_ruim("--html", args.html) or _destino_ruim("--resumo", args.resumo)):
+        return 2
+    if args.comando == "exportar" and _destino_ruim("--pasta", args.pasta, pasta=True):
         return 2
     if args.comando == "coletar":
         brutas = coleta.coletar(args.termo or coleta.TERMOS_PADRAO, dias=args.dias)

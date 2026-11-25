@@ -41,3 +41,17 @@ def test_barras_sem_ranking_avisa():
 def test_secao_novas_vazia_diz_que_nao_ha_vaga_nova():
     assert "Nenhuma vaga nova" in relatorio._secao_novas([])
     assert relatorio._secao_novas(None) == ""
+
+
+def test_cli_recusa_destino_do_tipo_errado(tmp_path, capsys):
+    from radar_skills.cli import main
+
+    arq = tmp_path / "arq.txt"
+    arq.write_text("x")
+    vagas = tmp_path / "v.json"
+    vagas.write_text('{"dias": 30, "vagas": []}')
+    assert main(["coletar", "--saida", str(tmp_path)]) == 2
+    assert main(["relatorio", str(vagas), "--html", str(tmp_path)]) == 2
+    assert main(["relatorio", str(vagas), "--resumo", str(tmp_path)]) == 2
+    assert main(["exportar", str(vagas), "--pasta", str(arq)]) == 2
+    assert capsys.readouterr().err.count("Erro:") == 4
